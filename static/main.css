@@ -1,0 +1,57 @@
+body {
+    font-family: "STHeitiSC-Light","Microsoft YaHei","微软雅黑";
+    font-size: 100%;
+    color: #505050;
+}
+
+@media screen and (max-device-width:1000px) {
+	input[type=text] {
+		width: 100%;
+		height: 5em;
+		border: 0.5em solid;
+		font-size: 4em;
+		text-align: center;
+	}
+	a {
+		text-decoration:none;
+		color: #6993FF;
+	}
+	a:hover {
+		color: #6993FF;
+	}
+	a:visited {
+		color: #6993FF;
+	}
+	body h1 {
+	    font-size: 5em;
+	    text-align: center;
+	}
+	body h2 {
+	    font-size: 4em;
+	    text-align: center;
+	}
+	body h3 {
+	    font-size: 1.5em;
+	    text-align: center;
+	}
+	body h6 {
+	    font-size: 2em;
+	    text-align: center;
+	}
+	body h5 {
+		font-size: 3em;
+	    text-align: left;
+	    color: #fff;
+	}
+	body .select {
+		padding-left: 5em;
+		background-color:#6993FF;
+		height:100%;
+		width:10em;
+		position:fixed;
+		top:0em;
+		left:0em;
+		display:flex;
+		flex-direction: column;
+	}
+}

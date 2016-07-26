@@ -1,0 +1,241 @@
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<script src="//cdn.bootcss.com/jquery/3.1.0/jquery.min.js"></script>
+		<link rel="alternate" type="application/rss+xml" title="atom 1.0" href="/feed">
+		<title>狼人杀</title>
+		<link href="{{url_for('static', filename='main.css')}}" type="text/css" rel="stylesheet"/>
+		<link rel="apple-touch-icon" href="{{url_for('static', filename='icon.png')}}">
+		<!-- <link href="../static/main.css" type="text/css" rel="stylesheet"/> -->
+	</head>
+	<body>
+		{% if (method!='into') %}
+			<div id="createGame">
+				<div style="width:100%;display:flex;justify-content:center">
+					<img style="margin-top:5em;" src="{{url_for('static', filename='logo.jpg')}}">
+					<!-- <img style="margin-top:5em;" src="../static/logo.jpg"> -->
+				</div>
+				<h1 style="border-bottom: 0.05em dashed;padding: 0.5em;">选择游戏人数:&nbsp;<span id="num">8</span></h1>
+				<h2>狼人:&nbsp;<span id="wolf">3</span></h2>
+				<h2>女巫:&nbsp;<span id="nvwu">1</span></h2>
+				<h2>预言家:&nbsp;<span id="yuyanjia">1</span></h2>
+				<h2>猎人:&nbsp;<span id="hunter">0</span></h2>
+				<h2>守卫:&nbsp;<span id="gud">0</span></h2>
+				<h2>白痴:&nbsp;<span id="foo">0</span></h2>
+				<h2>丘比特:&nbsp;<span id="qiu">0</span></h2>
+				<h2>平民:&nbsp;<span id="man">3</span></h2>
+				<h1 style="border-top: 0.05em dashed;padding: 0.5em;" id="dis">开始游戏</h1>
+				<div id="select"></div>
+			</div>
+		{% else %}
+			<!-- <div style="width:100%;display:flex;justify-content:center">
+				<img style="margin-top:1.5em;" src="{{url_for('static', filename='logo.jpg')}}">
+			</div> -->
+			<h1 style="margin-top: 2em;" >请输入房间号</h1>
+			<input id="intoRoomNum" type="text"></input>
+			<h2  id="intoBottom">进入房间</h2>
+		{% endif %}
+		<div id="gameBox"></div>
+	</body>
+	<script type="text/javascript">
+
+		$(document).ready(function(){
+			// 进入游戏
+			$('body').on("click" ,'#intoBottom',function() {
+				var text = $('#intoRoomNum').val();
+				$.post('./intoRoom', { room : text}, function(data) {
+					console.log(data);
+				});
+			});
+
+			var cache = {
+				num: 8,
+				nvwu: 1,
+				yuyanjia: 1,
+				wolf: 3,
+				man: 3
+			};
+			var numDefault = {
+				5: {
+					num: 5,
+					nvwu: 1,
+					yuyanjia: 1,
+					wolf: 2,
+					man: 1
+				},
+				6: {
+					num: 6,
+					nvwu: 1,
+					yuyanjia: 1,
+					wolf: 2,
+					man: 2
+				},
+				7: {
+					num: 7,
+					nvwu: 1,
+					yuyanjia: 1,
+					wolf: 2,
+					man: 3
+				},
+				8: {
+					num: 8,
+					nvwu: 1,
+					yuyanjia: 1,
+					wolf: 3,
+					man: 3
+				},
+				9: {
+					num: 9,
+					nvwu: 1,
+					yuyanjia: 1,
+					wolf: 3,
+					man: 4
+				},
+				10: {
+					num: 10,
+					nvwu: 1,
+					yuyanjia: 1,
+					wolf: 3,
+					man: 5
+				},
+				11: {
+					num: 11,
+					nvwu: 1,
+					yuyanjia: 1,
+					foo: 1,
+					wolf: 3,
+					man: 5
+				},
+				12: {
+					num: 12,
+					nvwu: 1,
+					yuyanjia: 1,
+					foo: 1,
+					wolf: 4,
+					man: 4,
+					hunter: 1
+				}
+			};
+			var game = {
+				userId: 0,
+				self: '',
+				gameId: 0
+			};
+			var changeV = function (e) {
+				var item = parseInt(e.target.innerHTML, 10);
+				var id = $(e.target).attr('pre');
+				var currentV = parseInt($('#'+id).html(), 10);
+				$('#select').html('');
+				if (currentV !== item) {
+					$('#'+id).html(item);
+					cache[id] = item;
+					// 重新选择人数的话需要 重置cache
+					if (id === 'num') {
+						cache = numDefault[item];
+						var initList = ["wolf","nvwu","yuyanjia","hunter","gud","foo","qiu","man"];
+						for (var x in initList) {
+							$('#' + initList[x]).html(0);
+						}
+						for (let key in cache) {
+							$('#' + key).html(cache[key]);
+						}
+					} else {
+						let dis = 0;
+						for (let x in cache) {
+							if (x === 'num') {
+								continue;
+							}
+							dis = dis + cache[x];
+						}
+						let sum = cache.num;
+						dis = sum - dis;
+						if (dis !==0) {
+							$('#dis').html('还差' + dis + '位角色');
+						} else {
+							$('#dis').html('开始游戏');
+						}
+					}
+				}
+			};
+			$('body').on("click" ,'h5',changeV);
+			$('body').on("click", '#dis', function(e){
+				var text = e.target.innerHTML;
+				if (text === '开始游戏') {
+					$.post('./initGame', cache, function(data) {
+						var gameInfo = JSON.parse(data);
+						$('#createGame').html('');
+						if (gameInfo.id !== 'error') {
+							game.gameId = gameInfo.id;
+							var pre = '<h1>房间:' + game.gameId + '</h1>'
+							var html = '';
+							html += '<h1>等候' + cache.num + '位玩家加入</h1>';
+							$('#gameBox').html(pre + html);
+							var check = false;
+							var timer = setInterval(function() {
+								var res = $.post('./getGameStatus', {
+									userId: 1,
+									gameId: game.gameId
+								}, function(v) {
+									let temp = JSON.parse(v);
+									let last = temp.last;
+									var pre = '<h1>房间:' + game.gameId + '</h1>'
+									var html = '';
+									html += '<h1>等候' + (cache.num + 1 - last) + '位玩家加入</h1>';
+									$('#gameBox').html(pre + html);
+								})
+								setTimeout(function () {
+									console.log(res.state());
+									if (res.state() !== 'resolved') {
+										clearInterval(timer);
+									}
+								}, 500);
+							}, 1000);
+						} else {
+							$('#createGame').html('<h1>出错啦!</h1>');
+						}
+						console.log(gameInfo);
+					});
+				}
+			})
+			$('span').click(function(e){
+			// $(e.target).hide();
+			// 可视区域
+			var x = e.clientX;
+			var y = e.clientY;
+			var id = e.target.id;
+			var select = '<div class="select">';
+						if (id === 'num') {
+							for (var x = 5;x < 13;x ++) {
+								select += '<h1 pre="num">' + x + '</h1>';
+							}
+				select +='</div>'
+				$('#select').append(select);
+			} else {
+				let sum = 0;
+				for (let key in cache) {
+					if (key === 'num') {
+						continue;
+					}
+					if (key === id) {
+						continue;
+					}
+					sum += cache[key];
+				}
+				let last = cache.num - sum;
+				// 除了平民或狼只能有一只
+				if ((id !== 'man') && (id !== 'wolf')) {
+					last = Math.min(1, last);
+				}
+				if (last !== 0) {
+					var select = '<div class="select">';
+								for (var x = 0;x <= last;x ++) {
+									select += '<h5 pre="' + id + '">' + x + '</h5>';
+								}
+					select +='</div>'
+					$('#select').append(select);
+				}
+			}
+			});
+		});
+	</script>
+</html>
